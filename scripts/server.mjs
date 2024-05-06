@@ -88,7 +88,7 @@ app.post("/payment", async (req, res) => {
 
   console.log("remainingTxs:", remainingTxs);
 
-  res.json({ remainingTxs });
+  res.json({ remainingTxs: Number(remainingTxs) });
 });
 
 // POST /config/user
@@ -100,7 +100,7 @@ app.post("/config/users", async (req, res) => {
 
     // check cache for user account
     userAccount = accounts[username];
-    if (userAccount !== NULL_ADDRESS) {
+    if (userAccount) {
       res.json({ message: "User account already exists.", userAccount });
       return;
     }
@@ -109,6 +109,7 @@ app.post("/config/users", async (req, res) => {
     userAccount = await configuration
       .connect(owner)
       .getUserAccount(username, contractAddress);
+
     if (userAccount !== NULL_ADDRESS) {
       res.json({ message: "User account already exists.", userAccount });
       return;
@@ -117,6 +118,8 @@ app.post("/config/users", async (req, res) => {
     // deploy new smart account for user
     userAccount = await Account.deploy();
     await userAccount.waitForDeployment();
+    const userAccountAddress = userAccount.target;
+    console.log("userAccountAddress:", userAccountAddress);
 
     // set user account in configuration contract
     configuration
@@ -168,7 +171,7 @@ app.post("/proxy/call", async (req, res) => {
       contractAddress
     );
     if (remainingTxs == 0) {
-      res.status(400).json({ message: "User has no remaining transactions." });
+      res.status(400).json({ error: "User has no remaining transactions." });
       return;
     }
 
@@ -177,13 +180,9 @@ app.post("/proxy/call", async (req, res) => {
 
     // have `user` call contract at `contractAddress` with `txData`
     const user = Account.attach(userAccount);
-    const response = await user.connect(owner).call(contractAddress, txData);
-    console.log("response:", response);
+    await user.connect(owner).call(contractAddress, txData);
 
-    const results = await response.json();
-    console.log("results:", results);
-
-    res.json(results);
+    res.send();
   } catch (error) {
     // console.error(error);
     res.status(400).json({ error: error.message });

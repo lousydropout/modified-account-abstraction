@@ -4,39 +4,54 @@ import "dotenv/config";
 const baseUrl = "http://localhost:3000";
 
 // smart contract addresses
-const FAVORITE_COLOR_ADDRESS = process.env.FAVORITE_COLOR;
-const COUNTER_ADDRESS = process.env.COUNTER;
-const CONFIGURATION_ADDRESS = process.env.CONFIGURATION;
+export const NULL_ADDRESS = "0x0000000000000000000000000000000000000000";
+export const FAVORITE_COLOR_ADDRESS = process.env.FAVORITE_COLOR;
+export const COUNTER_ADDRESS = process.env.COUNTER;
+export const CONFIGURATION_ADDRESS = process.env.CONFIGURATION;
 
 // smart contracts
-const Account = await hre.ethers.getContractFactory("SmartAccount");
-
 const Configuration = await hre.ethers.getContractFactory("Configuration");
 const configuration = Configuration.attach(CONFIGURATION_ADDRESS);
-
-const FavoriteColor = await hre.ethers.getContractFactory("FavoriteColor");
-const favoriteColor = FavoriteColor.attach(FAVORITE_COLOR_ADDRESS);
 
 const Counter = await hre.ethers.getContractFactory("Counter");
 const counter = Counter.attach(COUNTER_ADDRESS);
 
-const getUserAccount = async (username, contractAddress) => {
-  return await fetch(
+export const getUserAccount = async (username, contractAddress) => {
+  const response = await fetch(
     `${baseUrl}/config/contracts/${contractAddress}/users/${username}`
   );
+  const results = await response.json();
+  const { userAccount } = results;
+  return userAccount;
 };
 
-const incrementCount = async (username) => {
+export const createUserAccount = async (username, contractAddress) => {
+  try {
+    const response = await fetch(`${baseUrl}/config/users`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ username, contractAddress }),
+    });
+    if (!response.ok) return false;
+    const results = await response.json();
+    console.log("createUserAccount results: ", results);
+    return results;
+  } catch (error) {
+    console.error(error);
+    return false;
+  }
+};
+
+export const incrementCount = async (username) => {
   try {
     const tx = await counter.increment.populateTransaction();
-    console.log("tx: ", tx.data);
-
     const body = JSON.stringify({
       username,
       contractAddress: COUNTER_ADDRESS,
       txData: tx.data,
     });
-    console.log("body: ", body);
 
     const response = await fetch(`${baseUrl}/proxy/call`, {
       method: "POST",
@@ -45,9 +60,8 @@ const incrementCount = async (username) => {
       },
       body,
     });
-    if (!response.ok) return false; // throw new Error((await response.json()).error);
 
-    console.log("response: ", await response.text());
+    if (!response.ok) return false;
     return true;
   } catch (error) {
     console.error(error);
@@ -55,11 +69,9 @@ const incrementCount = async (username) => {
   }
 };
 
-const getCount = async (username) => {
+export const getCount = async (username) => {
   try {
-    const response = await getUserAccount(username, COUNTER_ADDRESS);
-    const { userAccount } = await response.json();
-    console.log("userAccount: ", userAccount);
+    const userAccount = await getUserAccount(username, COUNTER_ADDRESS);
 
     return await counter.getCounterOfUser(userAccount);
   } catch (error) {
@@ -68,7 +80,7 @@ const getCount = async (username) => {
   }
 };
 
-const getRemainingTxs = async (username, contractAddress) => {
+export const getRemainingTxs = async (username, contractAddress) => {
   try {
     return await configuration.getRemainingTxs(
       username.toLowerCase(),
@@ -80,37 +92,65 @@ const getRemainingTxs = async (username, contractAddress) => {
   }
 };
 
-const pay = async (username, contractAddress, numTx) => {
-  return await fetch(`${baseUrl}/payment`, {
+export const pay = async (username, contractAddress, numTx) => {
+  const response = await fetch(`${baseUrl}/payment`, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
     },
     body: JSON.stringify({ username, contractAddress, numTx }),
   });
+  const { remainingTxs } = await response.json();
+  return remainingTxs;
 };
 
-// const response = await getUserAccount(
-//   "Vincent",
-//   "0xF4AD185A9E575b77dc671860469e41bf42782810"
-// );
-// console.log("response: ", response);
+const username = "bob";
+let remainingTxs;
+let count;
+let userAccount;
 
-// const result = await response.json();
-// console.log("result: ", result);
+// 1. Check if a user account exists
+console.log("\n1. Check if a user account exists");
+userAccount = await getUserAccount(username, COUNTER_ADDRESS);
+console.log(
+  "userAccount: ",
+  userAccount === NULL_ADDRESS ? "NULL" : userAccount
+);
 
-// incrementCount("vincent");
-// incrementCount("vincent");
-// incrementCount("vincent");
-// incrementCount("vincent");
-const response = await incrementCount("vincent");
-console.log("response: ", response);
+// 2. Create a new user account if it doesn't exist
+console.log("\n2. Create a new user account if it doesn't exist");
+if (userAccount === NULL_ADDRESS) {
+  let response = await createUserAccount(username, COUNTER_ADDRESS);
+  userAccount = response.userAccount;
+}
 
-// const count = await getCount("Vincent");
-// console.log("count: ", count, typeof count);
+// // 3. Check the number of transactions remaining for the user
+// console.log("\n3. Check the number of transactions remaining for the user");
+// remainingTxs = await getRemainingTxs(username, COUNTER_ADDRESS);
+// console.log("remainingTxs: ", Number(remainingTxs));
 
-const remainingTxs = await getRemainingTxs("vincent", COUNTER_ADDRESS);
-console.log("remainingTxs: ", remainingTxs, typeof remainingTxs);
+// // 4. Check the counter value for the user
+// console.log("\n4. Check the counter value for the user");
+// count = await getCount(username);
+// console.log("count: ", count);
 
-// const response = await pay("vincent", COUNTER_ADDRESS, 5);
-// console.log("response: ", response.json());
+// // 5. Attempt to increment the counter for the user.
+// //    This should fail if the user's `remainingTxs` is 0
+// console.log("\n5. Attempt to increment the counter for the user.");
+// const success = await incrementCount(username);
+// console.log("success: ", success);
+
+// // 6. Check the counter value for the user
+// console.log("\n6. Check the counter value for the user");
+// count = await getCount(username);
+// console.log("count: ", count);
+
+// // 7. Check the number of transactions remaining for the user
+// console.log("\n7. Check the number of transactions remaining for the user");
+// remainingTxs = await getRemainingTxs(username, COUNTER_ADDRESS);
+// console.log("remainingTxs: ", Number(remainingTxs));
+
+// 8. Pay for more transactions
+// console.log("\n8. Pay for more 5 transactions");
+// remainingTxs = await pay(username, COUNTER_ADDRESS, 5);
+// console.log("remainingTxs: ", remainingTxs);

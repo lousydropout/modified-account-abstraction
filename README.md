@@ -42,7 +42,5 @@ Like the `Counter` smart contract, this is some simple smart contract whose purp
 2. Compile smart contracts: `npm run compile`
 3. Deploy all non-`SmartAccount` smart contracts: `npm run deploy`
    (their addresses are automatically added to `.env`)
-
-![Image Description](/images/dev.jpg)
-![Image Description](/images/user.jpg)
-![Image Description](/images/user_pays.jpg)
+4. Start server: `npm run server`
+5. Update the `username` in `scripts/call.mjs` line `107` to whatever you like. Then feel free to comment/uncomment the various "steps" from lines `102 - 157` in `scripts/call.mjs`. Then, run `node scripts/call.mjs` to check out the results.
