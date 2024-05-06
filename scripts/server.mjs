@@ -144,6 +144,20 @@ app.post("/proxy/call", async (req, res) => {
       accounts[username] = userAccount;
     }
 
+    // check if user has remaining transactions for specified contract
+    const remainingTxs = await configuration.getRemainingTxs(
+      username,
+      contractAddress
+    );
+    if (remainingTxs == 0)
+      throw new Error("User has no remaining transactions.");
+
+    // decrement remaining transactions
+    const success = await configuration
+      .connect(owner)
+      .decrement(username, contractAddress);
+    console.log("success:", success);
+
     // have `user` call contract at `contractAddress` with `txData`
     const user = Account.attach(userAccount);
     const x = await user.connect(owner).call(contractAddress, txData);

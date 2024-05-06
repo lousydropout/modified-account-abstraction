@@ -38,13 +38,16 @@ const incrementCount = async (username) => {
     });
     console.log("body: ", body);
 
-    fetch(`${baseUrl}/proxy/call`, {
+    const response = await fetch(`${baseUrl}/proxy/call`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
       },
       body,
     });
+    if (!response.ok) throw new Error((await response.json()).error);
+    console.log("success: ", success);
+    console.log("success: ", await success.json());
     return true;
   } catch (error) {
     console.error(error);
@@ -65,6 +68,18 @@ const getCount = async (username) => {
   }
 };
 
+const getRemainingTxs = async (username) => {
+  try {
+    return await configuration.getRemainingTxs(
+      username.toLowerCase(),
+      CONFIGURATION_ADDRESS
+    );
+  } catch (error) {
+    console.error(error);
+    return -1;
+  }
+};
+
 // const response = await getUserAccount(
 //   "Vincent",
 //   "0xF4AD185A9E575b77dc671860469e41bf42782810"
@@ -74,8 +89,18 @@ const getCount = async (username) => {
 // const result = await response.json();
 // console.log("result: ", result);
 
-// const response = await incrementCount("vincent");
-// console.log("response: ", response);
+const response = await incrementCount("vincent");
+console.log("response: ", response);
 
-const count = await getCount("Vincent");
-console.log("count: ", count);
+// const count = await getCount("Vincent");
+// console.log("count: ", count, typeof count);
+
+// const remainingTxs = await getRemainingTxs("Vincent");
+// console.log("remainingTxs: ", remainingTxs, typeof remainingTxs);
+// if (remainingTxs === 0) {
+//   console.log("No more transactions available.");
+// } else if (remainingTxs == 0) {
+//   console.log("Still no more transactions available.");
+// } else {
+//   console.log("Remaining transactions available.");
+// }
