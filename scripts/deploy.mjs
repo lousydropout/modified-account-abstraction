@@ -13,6 +13,13 @@ async function main() {
   console.log("contract FavoriteColor deployed to:", favoriteColor.target);
   appendToEnv("FAVORITE_COLOR", favoriteColor.target);
 
+  // deploy the `Counter` smart contract
+  const Counter = await hre.ethers.getContractFactory("Counter");
+  const counter = await Counter.deploy();
+  await counter.waitForDeployment();
+  console.log("contract Counter deployed to:", counter.target);
+  appendToEnv("COUNTER", counter.target);
+
   // deploy the `Configuration` smart contract
   const Configuration = await hre.ethers.getContractFactory("Configuration");
   const configuration = await Configuration.deploy();
