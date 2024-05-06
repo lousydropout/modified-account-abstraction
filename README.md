@@ -3,7 +3,7 @@
 The goal for API code and the set of smart contracts in this repo is to create a modified (and simplified) version of the popular ERC-4337.
 
 ERC-4337 makes using dApps seemless for non-web3 users.
-Unfortunately, this is largely at the expense of the developers, who have to foot the gas transaction bill for the users.
+Unfortunately, this is only temporary and largely at the expense of the developers, who have to foot the gas transaction bill for the users.
 So, unless the plan is for the dApp to make money via advertisements, this cannot last.
 The devs will eventually have to force the non-web3 user to choose between giving up using the dApp any further or learn to interact with the dApp via a wallet extension such as MetaMask (as well as to set up, fund, and manage the account).
 
@@ -42,3 +42,7 @@ Like the `Counter` smart contract, this is some simple smart contract whose purp
 2. Compile smart contracts: `npm run compile`
 3. Deploy all non-`SmartAccount` smart contracts: `npm run deploy`
    (their addresses are automatically added to `.env`)
+
+![Image Description](/images/dev.jpg)
+![Image Description](/images/user.jpg)
+![Image Description](/images/user_pays.jpg)
