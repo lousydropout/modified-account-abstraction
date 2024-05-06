@@ -3,7 +3,9 @@
   "type": "commonjs",
   "scripts": {
     "deploy": "node scripts/deploy.mjs",
-    "compile": "hardhat compile"
+    "calls": "node scripts/calls.mjs",
+    "compile": "hardhat compile",
+    "server": "nodemon scripts/server.mjs"
   },
   "devDependencies": {
     "@nomicfoundation/hardhat-toolbox": "^5.0.0",
