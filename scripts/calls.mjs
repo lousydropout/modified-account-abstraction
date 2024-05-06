@@ -45,9 +45,9 @@ const incrementCount = async (username) => {
       },
       body,
     });
-    if (!response.ok) throw new Error((await response.json()).error);
-    console.log("success: ", success);
-    console.log("success: ", await success.json());
+    if (!response.ok) return false; // throw new Error((await response.json()).error);
+
+    console.log("response: ", await response.text());
     return true;
   } catch (error) {
     console.error(error);
@@ -68,16 +68,26 @@ const getCount = async (username) => {
   }
 };
 
-const getRemainingTxs = async (username) => {
+const getRemainingTxs = async (username, contractAddress) => {
   try {
     return await configuration.getRemainingTxs(
       username.toLowerCase(),
-      CONFIGURATION_ADDRESS
+      contractAddress
     );
   } catch (error) {
     console.error(error);
     return -1;
   }
+};
+
+const pay = async (username, contractAddress, numTx) => {
+  return await fetch(`${baseUrl}/payment`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({ username, contractAddress, numTx }),
+  });
 };
 
 // const response = await getUserAccount(
@@ -89,18 +99,18 @@ const getRemainingTxs = async (username) => {
 // const result = await response.json();
 // console.log("result: ", result);
 
+// incrementCount("vincent");
+// incrementCount("vincent");
+// incrementCount("vincent");
+// incrementCount("vincent");
 const response = await incrementCount("vincent");
 console.log("response: ", response);
 
 // const count = await getCount("Vincent");
 // console.log("count: ", count, typeof count);
 
-// const remainingTxs = await getRemainingTxs("Vincent");
-// console.log("remainingTxs: ", remainingTxs, typeof remainingTxs);
-// if (remainingTxs === 0) {
-//   console.log("No more transactions available.");
-// } else if (remainingTxs == 0) {
-//   console.log("Still no more transactions available.");
-// } else {
-//   console.log("Remaining transactions available.");
-// }
+const remainingTxs = await getRemainingTxs("vincent", COUNTER_ADDRESS);
+console.log("remainingTxs: ", remainingTxs, typeof remainingTxs);
+
+// const response = await pay("vincent", COUNTER_ADDRESS, 5);
+// console.log("response: ", response.json());

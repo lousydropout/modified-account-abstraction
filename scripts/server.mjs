@@ -11,6 +11,7 @@ console.log("owner:", owner.address);
 const accounts = {};
 
 // smart contract addresses
+const NULL_ADDRESS = "0x0000000000000000000000000000000000000000";
 const FAVORITE_COLOR_ADDRESS = process.env.FAVORITE_COLOR;
 const COUNTER_ADDRESS = process.env.COUNTER;
 const CONFIGURATION_ADDRESS = process.env.CONFIGURATION;
@@ -71,6 +72,25 @@ app.get(
   }
 );
 
+// POST /payment
+app.post("/payment", async (req, res) => {
+  let { username, contractAddress, numTx } = req.body;
+  username = username.toLowerCase();
+
+  // set user account in configuration contract
+  await configuration
+    .connect(owner)
+    .incrementBy(username, contractAddress, numTx);
+
+  const remainingTxs = await configuration
+    .connect(owner)
+    .getRemainingTxs(username, contractAddress);
+
+  console.log("remainingTxs:", remainingTxs);
+
+  res.json({ remainingTxs });
+});
+
 // POST /config/user
 app.post("/config/users", async (req, res) => {
   try {
@@ -80,16 +100,18 @@ app.post("/config/users", async (req, res) => {
 
     // check cache for user account
     userAccount = accounts[username];
-    if (userAccount !== "0x0000000000000000000000000000000000000000") {
+    if (userAccount !== NULL_ADDRESS) {
       res.json({ message: "User account already exists.", userAccount });
+      return;
     }
 
     // check configuration contract for user account
     userAccount = await configuration
       .connect(owner)
       .getUserAccount(username, contractAddress);
-    if (userAccount !== "0x0000000000000000000000000000000000000000") {
+    if (userAccount !== NULL_ADDRESS) {
       res.json({ message: "User account already exists.", userAccount });
+      return;
     }
 
     // deploy new smart account for user
@@ -118,11 +140,6 @@ app.post("/config/users", async (req, res) => {
 app.post("/proxy/call", async (req, res) => {
   try {
     let { username, contractAddress, txData } = req.body;
-    console.log("{ username, contractAddress, txData }: ", {
-      username,
-      contractAddress,
-      txData,
-    });
     username = username.toLowerCase();
 
     let userAccount = accounts[username];
@@ -135,9 +152,10 @@ app.post("/proxy/call", async (req, res) => {
 
       console.log("userAccount:", userAccount);
 
-      // if account address is not found, throw an error
-      if (userAccount === "0x0000000000000000000000000000000000000000") {
-        throw new Error("User account not found.");
+      // if account address is not found, exit
+      if (userAccount === NULL_ADDRESS) {
+        res.status(400).json({ message: "User account not found." });
+        return;
       }
 
       // if account address is found, cache it
@@ -149,23 +167,25 @@ app.post("/proxy/call", async (req, res) => {
       username,
       contractAddress
     );
-    if (remainingTxs == 0)
-      throw new Error("User has no remaining transactions.");
+    if (remainingTxs == 0) {
+      res.status(400).json({ message: "User has no remaining transactions." });
+      return;
+    }
 
     // decrement remaining transactions
-    const success = await configuration
-      .connect(owner)
-      .decrement(username, contractAddress);
-    console.log("success:", success);
+    await configuration.connect(owner).decrement(username, contractAddress);
 
     // have `user` call contract at `contractAddress` with `txData`
     const user = Account.attach(userAccount);
-    const x = await user.connect(owner).call(contractAddress, txData);
-    console.log("x:", x);
+    const response = await user.connect(owner).call(contractAddress, txData);
+    console.log("response:", response);
 
-    res.send();
+    const results = await response.json();
+    console.log("results:", results);
+
+    res.json(results);
   } catch (error) {
-    console.error(error);
+    // console.error(error);
     res.status(400).json({ error: error.message });
   }
 });
