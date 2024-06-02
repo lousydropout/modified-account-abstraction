@@ -64,8 +64,13 @@ app.get(
       );
       console.log("userAccount:", userAccount, typeof userAccount);
 
-      // return user account address
-      res.json({ userAccount });
+      // return user account address if it exists
+      if (userAccount !== NULL_ADDRESS) {
+        res.json({ userAccount });
+        return;
+      } else {
+        res.status(404).json({ message: "User account not found." });
+      }
     } catch (error) {
       res.status(400).json({ error: error.message });
     }
