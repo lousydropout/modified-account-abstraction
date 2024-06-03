@@ -16,5 +16,10 @@ module.exports = {
       accounts: [`0x${process.env.PRIVATE_KEY}`], // Your private key
       chainId: 43113, // Chain ID for Avalanche Testnet
     },
+    arbitrumSepolia: {
+      url: "https://sepolia-rollup.arbitrum.io/rpc    ",
+      accounts: [`0x${process.env.PRIVATE_KEY}`], // Your private key
+      chainId: 421614, // Chain ID for Arbitrum Sepolia
+    },
   },
 };
