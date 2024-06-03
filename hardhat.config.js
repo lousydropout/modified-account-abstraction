@@ -16,10 +16,10 @@ module.exports = {
       accounts: [`0x${process.env.PRIVATE_KEY}`], // Your private key
       chainId: 43113, // Chain ID for Avalanche Testnet
     },
-    arbitrumSepolia: {
-      url: "https://sepolia-rollup.arbitrum.io/rpc    ",
+    sepolia: {
+      url: "https://sepolia.infura.io/v3",
       accounts: [`0x${process.env.PRIVATE_KEY}`], // Your private key
-      chainId: 421614, // Chain ID for Arbitrum Sepolia
+      chainId: 11155111, // Chain ID for Ethereum Sepolia
     },
   },
 };
