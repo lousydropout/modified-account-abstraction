@@ -4,7 +4,7 @@ require("dotenv").config();
 /** @type import('hardhat/config').HardhatUserConfig */
 module.exports = {
   solidity: "0.8.24",
-  defaultNetwork: "moonbaseAlpha",
+  defaultNetwork: "sepolia",
   networks: {
     moonbaseAlpha: {
       url: "https://moonbase-alpha.public.blastapi.io", // RPC URL for Moonbase Alpha
