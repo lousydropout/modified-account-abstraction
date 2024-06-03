@@ -17,7 +17,7 @@ module.exports = {
       chainId: 43113, // Chain ID for Avalanche Testnet
     },
     sepolia: {
-      url: "https://sepolia.infura.io/v3",
+      url: "https://sepolia.gateway.tenderly.co",
       accounts: [`0x${process.env.PRIVATE_KEY}`], // Your private key
       chainId: 11155111, // Chain ID for Ethereum Sepolia
     },
